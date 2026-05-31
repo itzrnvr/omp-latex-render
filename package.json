@@ -1,0 +1,28 @@
+{
+	"type": "module",
+	"name": "omp-latex-render",
+	"version": "1.0.0",
+	"description": "LaTeX math rendering extension for oh-my-pi — converts LaTeX to Unicode in terminal output",
+	"license": "MIT",
+	"keywords": [
+		"oh-my-pi",
+		"omp",
+		"extension",
+		"latex",
+		"math",
+		"unicode",
+		"rendering"
+	],
+	"omp": {
+		"extensions": [
+			"./index.ts"
+		]
+	},
+	"peerDependencies": {
+		"@oh-my-pi/pi-coding-agent": ">=13"
+	},
+	"files": [
+		"index.ts",
+		"latex-to-unicode.ts"
+	]
+}
