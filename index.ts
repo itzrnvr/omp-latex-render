@@ -103,10 +103,22 @@ export default function latexRenderExtension(pi: ExtensionAPI): void {
 	});
 
 	// ======================================================================
-	// 3. tool_result hook — auto-convert LaTeX in tool outputs
+	// 3. Assistant message interceptor — convert LaTeX before rendering
+	// ======================================================================
+	pi.setAssistantMessageEventInterceptor(async (event) => {
+		if (event.type === "text_end" && event.text) {
+			const converted = convertLatexToUnicode(event.text);
+			if (converted !== null && converted !== event.text) {
+				return { ...event, text: converted };
+			}
+		}
+		return event;
+	});
+
+	// ======================================================================
+	// 4. tool_result hook — auto-convert LaTeX in tool outputs
 	// ======================================================================
 	pi.on("tool_result", async (event, _ctx) => {
-		// Only process text content blocks
 		if (!event.output?.content || !Array.isArray(event.output.content)) {
 			return;
 		}
@@ -116,15 +128,10 @@ export default function latexRenderExtension(pi: ExtensionAPI): void {
 			if (block.type !== "text" || typeof block.text !== "string") continue;
 
 			const original = block.text;
-
-			// Skip if no LaTeX markers at all
 			if (original.indexOf("\\") === -1 && original.indexOf("$") === -1) continue;
 
-			// First: render fenced ```latex code blocks
 			let converted = renderLatexCodeBlocks(original);
-
-			// Then: convert inline $...$ and prose LaTeX
-			converted = convertLatexToUnicode(converted);
+			converted = convertLatexToUnicode(converted) ?? converted;
 
 			if (converted !== original) {
 				block.text = converted;
@@ -132,8 +139,6 @@ export default function latexRenderExtension(pi: ExtensionAPI): void {
 			}
 		}
 
-		// Returning undefined means "no modification" — we only return
-		// when we actually changed something.
 		if (modified) {
 			return { output: event.output };
 		}
